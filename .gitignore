@@ -1,2 +1,5 @@
 .DS_Store
 .ipynb_checkpoints
+HW1/data/crime.csv
+HW1/scripts/__pycache__
+HW1/scripts/secrets.py
