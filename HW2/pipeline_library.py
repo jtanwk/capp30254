@@ -1,16 +1,25 @@
 # CAPP 30254 Machine Learning for Public Policy
 # Homework 2 - Machine Learning Pipeline
+#
 # Pipeline Library file
+# Description: tbd
 
 #########
 # SETUP #
 #########
 
+# Setup
 import numpy as np
 import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier, export_graphviz
+from sklearn.metrics import accuracy_score
+import graphviz
+
+# Import hardcoded config file values
+import config
 
 
 ################
@@ -180,7 +189,7 @@ def bin_continuous_var(df, var, bin_width=None, num_bins=None):
     # Create name for new variable
     new_var = var + '_bin'
 
-    # Create copy of df to return; avoid implicitly modifying in place
+    # Create deep copy of df to return; avoid implicitly modifying df in place
     new_df = df.copy(deep=True)
 
     # Discretizing by bin_width:
@@ -189,11 +198,12 @@ def bin_continuous_var(df, var, bin_width=None, num_bins=None):
                                  np.arange(start=new_df[var].min(),
                                            stop=new_df[var].max(),
                                            step=bin_width))
-    else: # Discretizing by num_bins:
+        new_df[new_var] = new_df[new_var].astype('str')
+    # Discretizing by num_bins:
+    else:
         new_df[new_var]= pd.cut(new_df[var], num_bins)
 
     return new_df
-
 
 # 4B. Make dummy variables from categorical variable:
 def make_dummy_vars(df, var):
@@ -214,8 +224,4 @@ def make_dummy_vars(df, var):
     new_df = pd.get_dummies(df, columns=[var])
 
     return new_df
-
-
-
-
 #
