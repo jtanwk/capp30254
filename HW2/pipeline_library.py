@@ -8,18 +8,11 @@
 # SETUP #
 #########
 
-# Setup
+# Import useful libraries
 import numpy as np
 import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier, export_graphviz
-from sklearn.metrics import accuracy_score
-import graphviz
-
-# Import hardcoded config file values
-import config
 
 
 ################
@@ -28,6 +21,8 @@ import config
 
 def read_data(csv):
     '''
+    Takes a CSV file as input and returns a pandas DataFrame.
+
     Input: CSV file
     Output: pandas DataFrame of CSV file
     '''
@@ -120,9 +115,38 @@ def get_correlations(df, plot=False):
 
 
 # 3. Find outliers in numeric variables
-# 'Outlier' here is defined (if numeric) as having value of 1.5 * IQR
+def tag_outliers(df, varlist=None):
+    '''
+    Takes a pandas DataFrame and optional varlist as inputs, and returns
+    a DataFrame with binary columns indicating if each entry in a numeric
+    column is an outlier for that column. Only applies to numeric vars.
 
-# TODO
+    Inputs: df - pandas DataFrame
+            varlist - list of strings of varnames to plot. Default is all vars.
+    Output: new_df - pandas DataFrame with outlier indicator columns.
+    '''
+
+    # Optionally subset columns to find outliers in.
+    if varlist:
+        df = df[varlist]
+
+    # Create deep copy of df to return; avoid implicitly modifying df in place
+    new_df = df.copy(deep=True)
+
+    # Loop through columns and create new binary variable for each
+    for i in df.columns.tolist():
+
+        # Find bounds for outliers
+        q1, q3 = np.percentile(new_df[i], [25, 75])
+        iqr = q3 - q1
+        lower_bound = q1 - (1.5 * iqr)
+        upper_bound = q3 + (1.5 * iqr)
+
+        # tag outliers
+        new_name = i + '_outlier'
+        new_df[new_name] = new_df[i].map(lambda x: x < lower_bound or x > upper_bound)
+
+    return new_df
 
 
 # 4. Summarize numeric data
@@ -150,6 +174,8 @@ def fill_missing(df, median=False):
     Takes a df and replaces missing values for all numeric variables with a
     function of the remaining data. Function is mean by default, but can use
     median by giving 'median=True' parameter.
+
+    TODO: output line saying "Filled in [x] missing values in [var]".
 
     Input: df - pandas DataFrame
     Output: filled_df - pandas DataFrame with missing numeric data filled in
