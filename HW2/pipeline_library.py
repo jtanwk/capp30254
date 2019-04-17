@@ -115,38 +115,32 @@ def get_correlations(df, plot=False):
 
 
 # 3. Find outliers in numeric variables
-def tag_outliers(df, varlist=None):
+def get_outliers(df, var):
     '''
-    Takes a pandas DataFrame and optional varlist as inputs, and returns
-    a DataFrame with binary columns indicating if each entry in a numeric
-    column is an outlier for that column. Only applies to numeric vars.
+    Takes a pandas DataFrame and string variable as inputs, and returns
+    a DataFrame only containing rows with outlier values for the specified
+    variable. Only applies to numeric vars.
 
     Inputs: df - pandas DataFrame
-            varlist - list of strings of varnames to plot. Default is all vars.
-    Output: new_df - pandas DataFrame with outlier indicator columns.
+            var - string variable name to find outliers in
+    Output: new_df - pandas DataFrame with only outlier rows
     '''
 
-    # Optionally subset columns to find outliers in.
-    if varlist:
-        df = df[varlist]
-
     # Create deep copy of df to return; avoid implicitly modifying df in place
+    new_df = df[[var]]
     new_df = df.copy(deep=True)
 
-    # Loop through columns and create new binary variable for each
-    for i in df.columns.tolist():
+    # Find bounds for outliers
+    q1, q3 = np.nanpercentile(new_df, [25, 75])
+    iqr = q3 - q1
+    lower_bound = q1 - (1.5 * iqr)
+    upper_bound = q3 + (1.5 * iqr)
 
-        # Find bounds for outliers
-        q1, q3 = np.percentile(new_df[i], [25, 75])
-        iqr = q3 - q1
-        lower_bound = q1 - (1.5 * iqr)
-        upper_bound = q3 + (1.5 * iqr)
+    # identify outliers
+    is_outlier = lambda x: x < lower_bound or x > upper_bound
 
-        # tag outliers
-        new_name = i + '_outlier'
-        new_df[new_name] = new_df[i].map(lambda x: x < lower_bound or x > upper_bound)
+    return df.loc[df[var].apply(is_outlier)]
 
-    return new_df
 
 
 # 4. Summarize numeric data
@@ -228,6 +222,9 @@ def bin_continuous_var(df, var, bin_width=None, num_bins=None):
     # Discretizing by num_bins:
     else:
         new_df[new_var]= pd.cut(new_df[var], num_bins)
+
+    # Drop original continuous var
+    new_df = new_df.drop(labels=[var], axis=1)
 
     return new_df
 
