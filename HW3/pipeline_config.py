@@ -1,0 +1,63 @@
+# CAPP 30254 Machine Learning for Public Policy
+# Homework 3 - Improving the Pipeline
+#
+# Pipeline Configuration file
+# Description: This file holds all hard-coded values for the HW3 ML pipeline,
+#   including file paths, model parameters, etc. The section headers correspond
+#   to the specific portion of the assignment where the particular config
+#   variable is used.
+
+################
+# 1. READ DATA #
+################
+
+# Filepath where credit card data is stored
+DATA_PATH = 'data/projects_2012_2013.csv'
+
+#######################
+# 5. BUILD CLASSIFIER #
+#######################
+
+# Identifying columns of interest to drop or separate
+ID_COLS = ['projectid', 'teacher_acctid', 'schoolid', 'school_ncesid']
+LABEL = 'fully_funded_in_60_days'
+
+# Proportion of full data to use as a test set
+TEST_SIZE = 0.3
+
+# Probability threshold for classifying an observation as positive
+CLASS_THRESHOLD = 0.5
+
+# Nested dictionary of model parameters
+MODEL_PARAMS = {
+    'lr': {
+        'penalty': 'l1',
+        'solver': 'liblinear',
+        'random_state': 0
+    },
+    'knn': {
+        'weights': 'distance'
+    },
+    'dt': {
+        'criterion': 'entropy',
+        'max_features': 'auto',
+        'random_state': 0
+    },
+    'svm': {
+        'penalty': 'l1',
+        'dual': False,
+        'C': 1.0,
+        'random_state': 0
+    },
+    'rf': {
+        'criterion': 'entropy',
+        'max_features': 'auto',
+        'random_state': 0
+    },
+    'boost': {
+        'random_state': 0
+    },
+    'bag': {
+        'random_state': 0
+    }
+}
