@@ -30,34 +30,34 @@ CLASS_THRESHOLD = 0.5
 
 # Nested dictionary of model parameters
 MODEL_PARAMS = {
-    'lr': {
+    'LogisticRegression': {
         'penalty': 'l1',
         'solver': 'liblinear',
         'random_state': 0
     },
-    'knn': {
+    'KNeighborsClassifier': {
         'weights': 'distance'
     },
-    'dt': {
+    'DecisionTreeClassifier': {
         'criterion': 'entropy',
         'max_features': 'auto',
         'random_state': 0
     },
-    'svm': {
+    'LinearSVC': {
         'penalty': 'l1',
         'dual': False,
         'C': 1.0,
         'random_state': 0
     },
-    'rf': {
+    'RandomForestClassifier': {
         'criterion': 'entropy',
         'max_features': 'auto',
         'random_state': 0
     },
-    'boost': {
+    'AdaBoostClassifier': {
         'random_state': 0
     },
-    'bag': {
+    'BaggingClassifier': {
         'random_state': 0
     }
 }

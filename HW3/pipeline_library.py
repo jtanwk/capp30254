@@ -22,7 +22,7 @@ from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, \
                              AdaBoostClassifier, BaggingClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, \
-                            f1_score, precision_recall_curve
+                            f1_score, precision_recall_curve, roc_auc_score
 
 ################
 # 1. READ DATA #
@@ -262,7 +262,7 @@ def make_dummy_vars(df, var):
 def encode_ordinal_var(df, var, value_dict):
     '''
     Encodes a categorical, ordinal variable into an integer representation
-    that preserves the underlying meaning of the variable.
+    that preserves the underlying sequential order of the variable.
 
     Inputs: df - pandas DataFrame
             var - string label for an ordinal variable
@@ -346,58 +346,48 @@ def split_data_temporal(df, label, date_col, test_dur=1, test_units='Y'):
     return x_train, x_test, y_train, y_test
 
 
-def train_classifier(x_train, y_train, method=None, param_dict=None):
+def train_classifier(x_train, y_train, method, param_dict=None):
     '''
-    Takes 2 pandas DataFrames (features and labels of training data) and an
-    optional list of classifiers to fit. Returns a dictionary of trained
-    classifiers.
+    Takes 2 pandas DataFrames (features and labels of training data) and the
+    name of classifiers to fit. Returns a trained classifier object.
 
     Inputs: x_train - pandas DataFrame of features for training set
             x_test - pandas DataFrame of features for test set
-            method - (optional) list of string names of classifiers to use.
-                        If None, will use all of the following:
-                        lr      = LogisticRegression
-                        knn     = KNeighborsClassifier
-                        dt      = DecisionTreeClassifier
-                        svm     = LinearSVC
-                        rf      = RandomForestClassifier
-                        boost   = AdaBoostClassifier
-                        bag     = BaggingClassifier
+            method - string name of classifiers to use. Must be one of:
+                         1. LogisticRegression
+                         2. KNeighborsClassifier
+                         3. DecisionTreeClassifier
+                         4. LinearSVC
+                         5. RandomForestClassifier
+                         6. AdaBoostClassifier
+                         7. BaggingClassifier
             model_params - (optional) nested dictionary of parameters to
                         initialize each classifier with. If None, uses sklearn
                         defaults.
-    Output: classifier_dict - dictionary of trained classifier objects.
+    Output: trained classifier object
     '''
 
-    # If method is None, use this preset list of classifiers
+    # Supported classifiers
     method_dict = {
-        'lr': LogisticRegression,
-        'knn': KNeighborsClassifier,
-        'dt': DecisionTreeClassifier,
-        'svm': LinearSVC,
-        'rf': RandomForestClassifier,
-        'boost': AdaBoostClassifier,
-        'bag': BaggingClassifier
+        'LogisticRegression': LogisticRegression,
+        'KNeighborsClassifier': KNeighborsClassifier,
+        'DecisionTreeClassifier': DecisionTreeClassifier,
+        'LinearSVC': LinearSVC,
+        'RandomForestClassifier': RandomForestClassifier,
+        'AdaBoostClassifier': AdaBoostClassifier,
+        'BaggingClassifier': BaggingClassifier
     }
 
-    if not method:
-        method = method_dict.keys()
+    print(f'Training {method} with params {param_dict[method]}')
 
-    # Fit all selected classifiers and append to dictionary to return
-    classifier_dict = {}
+    # If parameter dictionary is not supplied, fit with sklearn defaults.
+    if not param_dict:
+        classifier = method_dict[method]()
+    else:
+        params = param_dict[method]
+        classifier = method_dict[method](**params)
 
-    for i in method:
-        print(f'Training {i} with params {param_dict[i]}')
-
-        if not param_dict:
-            classifier = method_dict[i]()
-        else:
-            params = param_dict[i]
-            classifier = method_dict[i](**params)
-
-        classifier_dict[i] = classifier.fit(x_train, y_train)
-
-    return classifier_dict
+    return method, classifier.fit(x_train, y_train)
 
 
 ###########################
@@ -405,27 +395,29 @@ def train_classifier(x_train, y_train, method=None, param_dict=None):
 ###########################
 
 
-def validate_classifier(x_test, y_test, classifier_dict, threshold=0.5):
+def validate_classifier(x_test, y_test, classifier, label_threshold=0.5,
+                        pr_threshold=None):
     '''
-    Takes 2 dataframes (features and labels for test data) and a dictionary of
-    pre-trained classifiers. When called, prints a series of evaluation
-    metrics for each classifier: accuracy, precision, recall, F1, AUC-PR.
+    Takes 2 dataframes (features and labels for test data) and a pre-trained
+    classifier object. Calculates several evaluation metrics (accuracy,
+    precision, recall, F1, etc.) and returns a dictionary of those metrics.
 
     Inputs: x_test - pandas DataFrame of features for test set
             y_test - pandas Series of labels for test set
-            classifier_dict - dictionary of trained classifiers.
-                Possible key/value pairs are as follows:
-                    lr      = LogisticRegression
-                    knn     = KNeighborsClassifier
-                    dt      = DecisionTreeClassifier
-                    svm     = LinearSVC
-                    rf      = RandomForestClassifier
-                    boost   = AdaBoost
-                    bag     = BaggingClassifier
-            threshold - (optional) float threshold to use in predicting labels
-                based on calculated scores from classifiers.
-
-    Output: Returns none. Prints a dataframe summarizing evaluation metrics.
+            classifier - tuple of sklearn classifier (name, object).
+                Must be one of:
+                 1. LogisticRegression
+                 2. KNeighborsClassifier
+                 3. DecisionTreeClassifier
+                 4. LinearSVC
+                 5. RandomForestClassifier
+                 6. AdaBoostClassifier
+                 7. BaggingClassifier
+            label_threshold - (optional) float threshold to use in predicting
+                labels based on calculated scores. Default is 0.5.
+            pr_threshold - (optional) list of float thresholds to use in
+                calculating precision and recall. Default is 1 (i.e. 100%).
+    Output: dictionary of evaluation metrics for the given classifier.
     '''
 
     # CLASSIFIER, PARAM 1, PARAM 2, TEST SPLIT, FEATURES USED, ACCURACY
@@ -433,53 +425,38 @@ def validate_classifier(x_test, y_test, classifier_dict, threshold=0.5):
 
     # Define quick function to compare score against threshold
     calc_threshold = lambda x, y: 0 if x < y else 1
-    accuracy, precision, recall, f1 = [], [], [], []
 
-    # Iterate over classifiers, predict values, and store results
-    for key in classifier_dict.keys():
-        print(f'Validating {key}')
+    # Need to manually get confidence scores from LinearSVC and normalize
+    if isinstance(classifier[1], LinearSVC):
+        y_scores = classifier[1].decision_function(x_test)
+        y_scores = (y_scores - y_scores.min()) / (y_scores.max() - y_scores.min())
+    else:
+        y_scores = classifier[1].predict_proba(x_test)[:, 1]
+    y_pred = pd.Series([calc_threshold(x, label_threshold) for x in y_scores])
 
-        # LinearSVC classifier does not output a score, only labels
-        if key == 'svm':
-            y_pred = classifier_dict[key].predict(x_test)
-        else:
-            y_scores = classifier_dict[key].predict_proba(x_test)[:, 1]
-            y_pred = pd.Series([calc_threshold(x, threshold) for x in y_scores])
+    # Store results in dictionary
+    results_dict = {}
+    results_dict['classifier'] = classifier[0]
+    results_dict['accuracy'] = accuracy_score(y_true=y_test, y_pred=y_pred)
+    results_dict['f1'] = f1_score(y_true=y_test, y_pred=y_pred)
+    results_dict['auc-roc'] = roc_auc_score(y_true=y_test, y_score=y_scores)
 
-        # log results
-        accuracy.append(accuracy_score(y_true=y_test, y_pred=y_pred))
-        precision.append(precision_score(y_true=y_test, y_pred=y_pred))
-        recall.append(recall_score(y_true=y_test, y_pred=y_pred))
-        f1.append(f1_score(y_true=y_test, y_pred=y_pred))
+    # If precision/recall at X threshold not given, use overall estimate.
+    if not pr_threshold:
+        results_dict['precision'] = precision_score(y_true=y_test, y_pred=y_pred)
+        results_dict['recall'] = recall_score(y_true=y_test, y_pred=y_pred)
+    else:
+        # Manually calculate precision at k
+        for i in pr_threshold:
+            y_test_new = y_test.reset_index()['fully_funded_in_60_days']
+            df = pd.DataFrame({'pred': y_pred, 'label': y_test_new, 'score': y_scores}) \
+                   .sort_values(by=['score'], ascending=False)
+            df = df.nlargest(round(i * len(df)), 'score')
 
-    return pd.DataFrame(list(
-        zip(classifier_dict.keys(), accuracy, precision, recall, f1)),
-        columns=['classifier', 'accuracy', 'precision', 'recall', 'f1']
-    )
+            results_dict['precision_' + str(i)] = precision_score(y_true=df['label'], y_pred=df['pred'])
+            results_dict['recall_' + str(i)] = recall_score(y_true=df['label'], y_pred=df['pred'])
 
-    # For test-train splits (CV or temporal),
-    # For subsets of feature sets (demographic only, behavior only, temporal only)
-    # For classifiers
-    # For parameters (cross-product of parameters)
-
-    # Fit
-    # Predict
-    # Evaluate
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return results_dict
 
 
 #
