@@ -18,15 +18,14 @@ DATA_PATH = 'data/projects_2012_2013.csv'
 # 5. BUILD CLASSIFIER #
 #######################
 
-# Identifying columns of interest to drop or separate
-ID_COLS = ['projectid', 'teacher_acctid', 'schoolid', 'school_ncesid']
+# Identifying column of interest
 LABEL = 'fully_funded_in_60_days'
 
 # Proportion of full data to use as a test set
 TEST_SIZE = 0.3
 
 # Probability threshold for classifying an observation as positive
-CLASS_THRESHOLD = 0.5
+CLASS_THRESHOLD = 0.7
 
 # Nested dictionary of model parameters
 MODEL_PARAMS = {
@@ -44,8 +43,7 @@ MODEL_PARAMS = {
         'random_state': 0
     },
     'LinearSVC': {
-        'penalty': 'l1',
-        'dual': False,
+        'penalty': 'l2',
         'C': 1.0,
         'random_state': 0
     },

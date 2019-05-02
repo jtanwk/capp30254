@@ -258,21 +258,6 @@ def make_dummy_vars(df, var):
     return new_df
 
 
-# 4C. Encode ordinal variables into numeric format
-def encode_ordinal_var(df, var, value_dict):
-    '''
-    Encodes a categorical, ordinal variable into an integer representation
-    that preserves the underlying sequential order of the variable.
-
-    Inputs: df - pandas DataFrame
-            var - string label for an ordinal variable
-            value_dict - dictionary of values to assign to variable
-    Output: new_df - pandas DataFrame with transformed ordinal variable
-    '''
-
-    pass
-
-
 ########################
 # 5. Build Classifiers #
 ########################
@@ -334,8 +319,8 @@ def split_data_temporal(df, label, date_col, test_dur=1, test_units='Y'):
     threshold = df[date_col].max() - pd.to_timedelta(test_dur, test_units)
 
     # Training data is everything before threshold, test data is after
-    x_train = df.loc[df[date_col] <= threshold]
-    x_test = df.loc[df[date_col] > threshold]
+    x_train = df.loc[df[date_col] < threshold]
+    x_test = df.loc[df[date_col] >= threshold]
 
     # Separate out labels for train and test sets
     y_train = x_train[label]
@@ -343,7 +328,7 @@ def split_data_temporal(df, label, date_col, test_dur=1, test_units='Y'):
     y_test = x_test[label]
     x_test = x_test.drop(labels=[label], axis=1)
 
-    return x_train, x_test, y_train, y_test
+    return [x_train, x_test, y_train, y_test]
 
 
 def train_classifier(x_train, y_train, method, param_dict=None):
@@ -426,13 +411,13 @@ def validate_classifier(x_test, y_test, classifier, label_threshold=0.5,
     # Define quick function to compare score against threshold
     calc_threshold = lambda x, y: 0 if x < y else 1
 
-    # Need to manually get confidence scores from LinearSVC and normalize
+    # Need to manually get confidence scores from LinearSVC
     if isinstance(classifier[1], LinearSVC):
         y_scores = classifier[1].decision_function(x_test)
-        y_scores = (y_scores - y_scores.min()) / (y_scores.max() - y_scores.min())
+        y_pred = classifier[1].predict(x_test)
     else:
         y_scores = classifier[1].predict_proba(x_test)[:, 1]
-    y_pred = pd.Series([calc_threshold(x, label_threshold) for x in y_scores])
+        y_pred = pd.Series([calc_threshold(x, label_threshold) for x in y_scores])
 
     # Store results in dictionary
     results_dict = {}
