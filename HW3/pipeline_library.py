@@ -253,7 +253,7 @@ def make_dummy_vars(df, var):
     new_df = df.copy(deep=True)
 
     # Get dummy variables
-    new_df = pd.get_dummies(df, columns=[var])
+    new_df = pd.get_dummies(df, columns=[var], dtype=np.int64)
 
     return new_df
 
@@ -349,7 +349,8 @@ def train_classifier(x_train, y_train, method, param_dict=None):
             model_params - (optional) nested dictionary of parameters to
                         initialize each classifier with. If None, uses sklearn
                         defaults.
-    Output: trained classifier object
+    Output: method - string name of classifier used.
+            trained - trained classifier object
     '''
 
     # Supported classifiers
@@ -363,16 +364,19 @@ def train_classifier(x_train, y_train, method, param_dict=None):
         'BaggingClassifier': BaggingClassifier
     }
 
-    print(f'Training {method} with params {param_dict[method]}')
 
     # If parameter dictionary is not supplied, fit with sklearn defaults.
     if not param_dict:
+        print(f'Training {method} with default parameters.')
         classifier = method_dict[method]()
     else:
+        print(f'Training {method} with params {param_dict[method]}.')
         params = param_dict[method]
         classifier = method_dict[method](**params)
 
-    return method, classifier.fit(x_train, y_train)
+    trained = classifier.fit(x_train, y_train)
+
+    return method, trained
 
 
 ###########################
@@ -405,8 +409,8 @@ def validate_classifier(x_test, y_test, classifier, label_threshold=0.5,
     Output: dictionary of evaluation metrics for the given classifier.
     '''
 
-    # CLASSIFIER, PARAM 1, PARAM 2, TEST SPLIT, FEATURES USED, ACCURACY
-    # PRECISION AT 1%, AUC
+    # Remove in final version
+    print(f'Validating ' + classifier[0])
 
     # Define quick function to compare score against threshold
     calc_threshold = lambda x, y: 0 if x < y else 1

@@ -25,26 +25,32 @@ LABEL = 'fully_funded_in_60_days'
 TEST_SIZE = 0.3
 
 # Probability threshold for classifying an observation as positive
-CLASS_THRESHOLD = 0.7
+CLASS_THRESHOLD = 0.53
 
 # Nested dictionary of model parameters
 MODEL_PARAMS = {
     'LogisticRegression': {
-        'penalty': 'l1',
+        'penalty': 'l2',
+        'C': 1.0,
         'solver': 'liblinear',
         'random_state': 0
     },
     'KNeighborsClassifier': {
+        'n_neighbors': 100,
+        'algorithm': 'auto',
+        'metric': 'minkowski',
         'weights': 'distance'
     },
     'DecisionTreeClassifier': {
         'criterion': 'entropy',
+        'max_depth': 7,
         'max_features': 'auto',
         'random_state': 0
     },
     'LinearSVC': {
         'penalty': 'l2',
         'C': 1.0,
+        'max_iter': 1000,
         'random_state': 0
     },
     'RandomForestClassifier': {
@@ -53,9 +59,11 @@ MODEL_PARAMS = {
         'random_state': 0
     },
     'AdaBoostClassifier': {
+        'n_estimators': 10,
         'random_state': 0
     },
     'BaggingClassifier': {
+        'n_estimators': 10,
         'random_state': 0
     }
 }
