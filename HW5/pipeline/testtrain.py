@@ -50,7 +50,7 @@ def train_classifier(df, label, method, df_num, param_dict=None):
         classifier object.
     '''
     print(str(datetime.datetime.now()) + ' Training ' + method + \
-        'with params' + param_dict + 'on training set'  + df_num)
+        'with params' + str(param_dict) + 'on training set'  + df_num)
 
     # Supported classifiers
     method_dict = {
@@ -76,7 +76,7 @@ def train_classifier(df, label, method, df_num, param_dict=None):
 
     # Raise error if provided method is not supported
     if method not in method_dict.keys():
-        print(method + 'is not a supported classifier. Pleaes use one of:')
+        print(method + 'is not a supported classifier. Please use one of:')
         print(method_dict.keys())
         return None
 
@@ -117,8 +117,8 @@ def validate_classifier(df, label, classifier, top_k):
     '''
 
     # classifier = (method, param_dict, df_num, trained)
-    print(str(datetime.datetime.now() + 'Evaluating ' + classifier[0] + ' with ' \
-        + classifier[1] + ' on top ' +  str(top_k * 100) + '%'))
+    print(str(datetime.datetime.now()) + 'Evaluating ' + classifier[0] + ' with ' \
+        + str(classifier[1]) + ' on top ' +  str(top_k * 100) + '%')
 
     # Initialize dictionary to store results
     results_dict = {
