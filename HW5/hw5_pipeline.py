@@ -110,7 +110,7 @@ def main():
 
     # train classifiers
     classifiers = cf.CLASSIFIERS # list of string names of classifiers
-    parameters = cf.GRID_LARGE # dictionary of lists of parameters
+    parameters = cf.GRID_TEST # dictionary of lists of parameters
     num_training_sets = len(cf.TEMPORAL_SPLITS) # use to index into train_dfs
     label = cf.LABEL
     trained_classifiers = []
@@ -127,7 +127,7 @@ def main():
                 trained_classifiers.append(trained)
 
     # evaluate classifiers
-    thresholds = cf.THRESHOLDS
+    thresholds = parameters['thresholds']
     results_df = pd.DataFrame()
 
     for i in trained_classifiers: # (method, param_dict, df_num, trained)
@@ -142,8 +142,6 @@ def main():
     # save results to csv
     COL_ORDER = ['classifier', 'params', 'k', 'test-train-id', 'accuracy', 'precision', 'recall', 'f1', 'auc-roc']
     results_df[COL_ORDER].to_excel("output/results.xlsx")
-
-    print(f"COMPLETED AT {datetime.datetime.now()}")
 
 
 if __name__ == '__main__':

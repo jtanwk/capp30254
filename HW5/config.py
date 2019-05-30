@@ -49,11 +49,9 @@ CLASSIFIERS = ['LogisticRegression', 'KNeighborsClassifier',
                'DecisionTreeClassifier', 'LinearSVC', 'RandomForestClassifier',
                'AdaBoostClassifier', 'BaggingClassifier']
 
-# Thresholds for classifying k% of observations as positive labels
-THRESHOLDS = [0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 1]
-
 # Large grid - most exhaustive option
 GRID_LARGE = {
+    'thresholds': [0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 1],
     'LogisticRegression': [
         {'penalty': x, 'C': y, 'solver': 'liblinear', 'random_state': 0} \
         for x in ('l1', 'l2') \
@@ -96,6 +94,7 @@ GRID_LARGE = {
 
 # Test grid to make sure everything works - 1 model per classifier
 GRID_TEST = {
+    'thresholds': [0.5],
     'LogisticRegression': [
         {'penalty': 'l2', 'C': 1, 'solver': 'liblinear', 'random_state': 0}
     ],
