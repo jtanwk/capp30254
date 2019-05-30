@@ -49,8 +49,8 @@ def train_classifier(df, label, method, df_num, param_dict=None):
         (2) hyperparameters used, (3) the test/train id, and (4) the trained
         classifier object.
     '''
-    print(str(datetime.datetime.now() + ' Training ' + method +
-        'with params' + param_dict + 'on training set'  + df_num))
+    print(str(datetime.datetime.now()) + ' Training ' + method + \
+        'with params' + param_dict + 'on training set'  + df_num)
 
     # Supported classifiers
     method_dict = {
