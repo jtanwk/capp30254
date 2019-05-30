@@ -12,8 +12,9 @@ module load python/3.6.1+intel-16.0
 python -mvenv test_env
 source ./test_env/bin/activate
 
-pip3 install --upgrade pip
-pip3 install -r requirements.txt
+module load python/3.6.1+intel-16.0
+pip3 install --user --upgrade pip
+pip3 install --user -r requirements.txt
 
 python3 hw5_pipeline.py
 
