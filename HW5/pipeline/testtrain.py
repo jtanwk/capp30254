@@ -50,7 +50,7 @@ def train_classifier(df, label, method, df_num, param_dict=None):
         classifier object.
     '''
     print(str(datetime.datetime.now() + ' Training ' + method +
-        'with params' + param_dict + 'on training set'  + df_num)
+        'with params' + param_dict + 'on training set'  + df_num))
 
     # Supported classifiers
     method_dict = {

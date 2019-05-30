@@ -44,13 +44,12 @@ TEMPORAL_SPLITS = [
 # 5. BUILD CLASSIFIER #
 #######################
 
-# Supported classifier types
-CLASSIFIERS = ['LogisticRegression', 'KNeighborsClassifier',
-               'DecisionTreeClassifier', 'LinearSVC', 'RandomForestClassifier',
-               'AdaBoostClassifier', 'BaggingClassifier']
-
 # Large grid - most exhaustive option
-GRID_LARGE = {
+GRID_MAIN = {
+    'classifiers': ['LogisticRegression', 'KNeighborsClassifier',
+                   'DecisionTreeClassifier', 'LinearSVC',
+                   'RandomForestClassifier', 'AdaBoostClassifier',
+                   'BaggingClassifier'],
     'thresholds': [0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 1],
     'LogisticRegression': [
         {'penalty': x, 'C': y, 'solver': 'liblinear', 'random_state': 0} \
@@ -59,16 +58,16 @@ GRID_LARGE = {
     ],
     'KNeighborsClassifier': [
         {'n_neighbors': x, 'weights': y, 'algorithm': z} \
-        for x in (1, 5, 10, 20, 50) \
+        for x in (5, 10, 50) \
         for y in ('uniform', 'distance') \
         for z in ('auto', 'ball_tree', 'kd_tree')
     ],
     'DecisionTreeClassifier': [
         {'max_depth': x, 'max_features': y, 'min_samples_leaf': z,
         'random_state': 0} \
-        for x in (1, 5, 10, 50) \
+        for x in (5, 10, 50) \
         for y in ('sqrt', 'log2', None) \
-        for z in (1, 5, 10)
+        for z in (5, 10)
     ],
     'LinearSVC': [
         {'penalty': 'l2', 'C': x, 'random_state': 0} \
@@ -78,8 +77,8 @@ GRID_LARGE = {
         {'n_estimators': x, 'max_depth': y, 'max_features': z,
         'random_state': 0, 'n_jobs': -1} \
         for x in (10, 100, 1000) \
-        for y in (1, 5, 10, 50) \
-        for z in ('sqrt', 'log2', None)
+        for y in (5, 10, 50) \
+        for z in ('sqrt', 'log2')
     ],
     'AdaBoostClassifier': [
         {'n_estimators': x, 'algorithm': y, 'random_state': 0} \
@@ -94,6 +93,8 @@ GRID_LARGE = {
 
 # Test grid to make sure everything works - 1 model per classifier
 GRID_TEST = {
+    'classifiers': ['LogisticRegression', 'KNeighborsClassifier',
+                   'DecisionTreeClassifier'],
     'thresholds': [0.5],
     'LogisticRegression': [
         {'penalty': 'l2', 'C': 1, 'solver': 'liblinear', 'random_state': 0}

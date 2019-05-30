@@ -1,6 +1,6 @@
 # CAPP 30254 Machine Learning for Public Policy
 # Homework 5 - Improving the Pipeline, Again
-# Main Pipeline Executable
+# Test Pipeline Executable
 
 #########
 # SETUP #
@@ -109,7 +109,7 @@ def main():
 
 
     # train classifiers
-    parameters = cf.GRID_MAIN # dictionary of lists of parameters
+    parameters = cf.GRID_TEST # dictionary of lists of parameters
 
     classifiers = parameters['classifiers'] # list of string names of classifiers
     num_training_sets = len(cf.TEMPORAL_SPLITS) # use to index into train_dfs
@@ -141,7 +141,7 @@ def main():
 
     # save results to csv
     COL_ORDER = ['classifier', 'params', 'k', 'test-train-id', 'accuracy', 'precision', 'recall', 'f1', 'auc-roc']
-    results_df[COL_ORDER].to_excel("output/results.xlsx")
+    results_df[COL_ORDER].to_excel("output/results_test.xlsx")
 
 
 if __name__ == '__main__':
