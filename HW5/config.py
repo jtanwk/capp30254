@@ -1,11 +1,7 @@
 # CAPP 30254 Machine Learning for Public Policy
-# Homework 3 - Improving the Pipeline
-#
+# Homework 5 - Improving the Pipeline
 # Pipeline Configuration file
-# Description: This file holds all hard-coded values for the HW3 ML pipeline,
-#   including file paths, model parameters, etc. The section headers correspond
-#   to the specific portion of the assignment where the particular config
-#   variable is used.
+
 
 ################
 # 1. READ DATA #
@@ -14,24 +10,31 @@
 # Filepath where credit card data is stored
 DATA_PATH = 'data/projects_2012_2013.csv'
 
+# Identifying column of interest
+LABEL = 'not_funded_60_days'
+DATE_COL = 'date_posted'
+
 ########################
 # 3. TEST/TRAIN SPLITS #
 ########################
 
-# Proportion of full data to use as a test set, if not using temporal splits
-TEST_SIZE = 0.3
-
-# Dates for temporal splits
+# Dates for temporal test/train splits
 TEMPORAL_SPLITS = [
     {
+        'train_start': '1/1/2012',
+        'train_end': '6/30/2012',
         'test_start': '7/1/2012',
         'test_end': '12/31/2012'
     },
     {
+        'train_start': '1/1/2012',
+        'train_end': '12/31/2012',
         'test_start': '1/1/2013',
         'test_end': '6/30/2013'
     },
     {
+        'train_start': '1/1/2012',
+        'train_end': '6/30/201',
         'test_start': '7/1/2013',
         'test_end': '12/31/2013'
     },
@@ -41,8 +44,13 @@ TEMPORAL_SPLITS = [
 # 5. BUILD CLASSIFIER #
 #######################
 
-# Identifying column of interest
-LABEL = 'not_funded_60_days'
+# Supported classifier types
+CLASSIFIERS = ['LogisticRegression', 'KNeighborsClassifier',
+               'DecisionTreeClassifier', 'LinearSVC', 'RandomForestClassifier',
+               'AdaBoostClassifier', 'BaggingClassifier']
+
+# Thresholds for classifying k% of observations as positive labels
+THRESHOLDS = [0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 1]
 
 # Large grid - most exhaustive option
 GRID_LARGE = {
@@ -65,17 +73,15 @@ GRID_LARGE = {
         for z in (1, 5, 10)
     ],
     'LinearSVC': [
-        {'penalty': x, 'C': y, 'random_state': 0} \
-        for x in ('l1', 'l2') \
-        for y in (0.01, 0.1, 1, 10, 100)
+        {'penalty': 'l2', 'C': x, 'random_state': 0} \
+        for x in (0.01, 0.1, 1, 10, 100)
     ],
     'RandomForestClassifier': [
-        {'n_estimators': w, 'max_depth': x, 'max_features': y,
-        'min_samples_leaf': z, 'random_state': 0} \
-        for w in (10, 100, 1000) \
-        for x in (1, 5, 10, 50) \
-        for y in ('sqrt', 'log2', None) \
-        for z in (1, 5, 10)
+        {'n_estimators': x, 'max_depth': y, 'max_features': z,
+        'random_state': 0, 'n_jobs': -1} \
+        for x in (10, 100, 1000) \
+        for y in (1, 5, 10, 50) \
+        for z in ('sqrt', 'log2', None)
     ],
     'AdaBoostClassifier': [
         {'n_estimators': x, 'algorithm': y, 'random_state': 0} \
@@ -83,8 +89,8 @@ GRID_LARGE = {
         for y in ('SAMME', 'SAMME.R')
     ],
     'BaggingClassifier': [
-        {'n_estimators': x, 'random_state': 0} \
-        for x in (10, 100, 1000)
+        {'n_estimators': x, 'random_state': 0, 'n_jobs': -1} \
+        for x in (10, 100, 1000, 10000)
     ]
 }
 
