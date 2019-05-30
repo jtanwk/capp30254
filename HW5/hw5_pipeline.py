@@ -109,7 +109,6 @@ def main():
 
 
     # train classifiers
-    classifiers_test = ['LogisticRegression', 'DecisionTreeClassifier']
     classifiers = cf.CLASSIFIERS # list of string names of classifiers
     parameters = cf.GRID_LARGE # dictionary of lists of parameters
     num_training_sets = len(cf.TEMPORAL_SPLITS) # use to index into train_dfs
@@ -128,7 +127,6 @@ def main():
                 trained_classifiers.append(trained)
 
     # evaluate classifiers
-    thresholds_test = [0.01, 0.02]
     thresholds = cf.THRESHOLDS
     results_df = pd.DataFrame()
 
