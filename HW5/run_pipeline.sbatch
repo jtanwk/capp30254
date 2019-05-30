@@ -11,6 +11,7 @@
 source ./test_env/bin/activate
 module load python/3.6.1+intel-16.0
 
+mkdir output
 python3 hw5_pipeline.py
 
 deactivate
