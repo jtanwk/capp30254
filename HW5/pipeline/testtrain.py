@@ -118,7 +118,7 @@ def validate_classifier(df, label, classifier, top_k):
 
     # classifier = (method, param_dict, df_num, trained)
     print(str(datetime.datetime.now() + 'Evaluating ' + classifier[0] + ' with ' \
-        + classifier[1] + ' on top ' +  str(top_k * 100) + '%')
+        + classifier[1] + ' on top ' +  str(top_k * 100) + '%'))
 
     # Initialize dictionary to store results
     results_dict = {
