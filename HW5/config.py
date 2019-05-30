@@ -34,7 +34,7 @@ TEMPORAL_SPLITS = [
     },
     {
         'train_start': '1/1/2012',
-        'train_end': '6/30/201',
+        'train_end': '6/30/2013',
         'test_start': '7/1/2013',
         'test_end': '12/31/2013'
     },

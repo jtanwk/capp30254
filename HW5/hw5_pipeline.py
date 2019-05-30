@@ -10,19 +10,9 @@ import math
 import datetime
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-
 from sklearn.preprocessing import normalize, scale
-from sklearn.linear_model import LogisticRegression
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.svm import LinearSVC
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, \
-                             BaggingClassifier
-from sklearn.metrics import accuracy_score, precision_score, recall_score, \
-                            f1_score, precision_recall_curve, roc_auc_score
 
-import pipeline.config as cf
+import config as cf
 from pipeline.explore import read_data
 from pipeline.preprocess import fill_missing, bin_continuous_var, \
                                 make_dummy_vars, split_data_temporal
@@ -35,8 +25,8 @@ from pipeline.testtrain import train_classifier, validate_classifier
 
 def main():
 
-
     # read data
+    print('reading data')
     df = pd.read_csv(cf.DATA_PATH,
                      parse_dates=['date_posted', 'datefullyfunded'])
 
@@ -51,12 +41,14 @@ def main():
 
 
     # split into test-train
+    print('splitting data')
     train_dfs, test_dfs = split_data_temporal(df=df,
                                               date_col=cf.DATE_COL,
-                                              split_dict=cf.TEMPORAL_SPLITS)
+                                              split_dicts=cf.TEMPORAL_SPLITS)
 
 
     # define label
+    print('defining label')
     for df_list in (train_dfs, test_dfs):
         for df in df_list:
 
@@ -67,11 +59,16 @@ def main():
             # Leave a lag period of 60 days at the end of each dataset
             df = df.loc[df['date_posted'].max() - df['date_posted'] > \
                 pd.to_timedelta(60, unit='days')]
-            # Drop unnecessary columns
+
+    # Drop unnecessary columns
+    for df_list in (train_dfs, test_dfs):
+        for i in range(len(df_list)):
+
             df_list[i] = df_list[i].drop(labels=['date_posted', 'datefullyfunded'], axis=1)
 
 
     # clean missing data
+    print('cleaning data')
     for df_list in (train_dfs, test_dfs):
         for df in df_list:
             df = fill_missing(df, ['students_reached'], median=True)
@@ -114,12 +111,12 @@ def main():
     # train classifiers
     classifiers_test = ['LogisticRegression', 'DecisionTreeClassifier']
     classifiers = cf.CLASSIFIERS # list of string names of classifiers
-    parameters = cf.GRID_TEST # dictionary of lists of parameters
+    parameters = cf.GRID_LARGE # dictionary of lists of parameters
     num_training_sets = len(cf.TEMPORAL_SPLITS) # use to index into train_dfs
     label = cf.LABEL
     trained_classifiers = []
 
-    for i in classifiers_test:
+    for i in classifiers:
         for j in parameters[i]:
             for k in range(num_training_sets):
 
@@ -136,7 +133,7 @@ def main():
     results_df = pd.DataFrame()
 
     for i in trained_classifiers: # (method, param_dict, df_num, trained)
-        for j in thresholds_test:
+        for j in thresholds:
 
             results_dict = validate_classifier(df=test_dfs[i[2]],
                                                label=cf.LABEL,
@@ -147,6 +144,8 @@ def main():
     # save results to csv
     COL_ORDER = ['classifier', 'params', 'k', 'test-train-id', 'accuracy', 'precision', 'recall', 'f1', 'auc-roc']
     results_df[COL_ORDER].to_excel("output/results.xlsx")
+
+    print(f"COMPLETED AT {datetime.datetime.now()}")
 
 
 if __name__ == '__main__':

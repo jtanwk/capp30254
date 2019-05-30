@@ -49,8 +49,7 @@ def train_classifier(df, label, method, df_num, param_dict=None):
         (2) hyperparameters used, (3) the test/train id, and (4) the trained
         classifier object.
     '''
-    print(f'{datetime.datetime.now()} Training {method} with params {param_dict} on training set {df_num}',
-        end='\r')
+    print(f'{datetime.datetime.now()} Training {method} with params {param_dict} on training set {df_num}')
 
     # Supported classifiers
     method_dict = {
@@ -117,8 +116,7 @@ def validate_classifier(df, label, classifier, top_k):
     '''
 
     # classifier = (method, param_dict, df_num, trained)
-    print(f'{datetime.datetime.now()} Evaluating {classifier[0]} with {classifier[1]}',
-        end='\r')
+    print(f'{datetime.datetime.now()} Evaluating {classifier[0]} with {classifier[1]} on top {str(top_k * 100) + "%"}')
 
     # Initialize dictionary to store results
     results_dict = {

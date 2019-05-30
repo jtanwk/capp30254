@@ -1,4 +1,4 @@
-# Homework 5 - Improving the Pipeline Again
+# Homework 5 - Improving the Pipeline, Again
 
 ## What files do I look at?
 - `/pipeline` is the library that contains the modules for my pipeline functions.
