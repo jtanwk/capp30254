@@ -52,12 +52,13 @@ GRID_MAIN = {
                    'BaggingClassifier'],
     'thresholds': [0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 1],
     'LogisticRegression': [
-        {'penalty': x, 'C': y, 'solver': 'liblinear', 'random_state': 0} \
+        {'penalty': x, 'C': y, 'solver': 'liblinear', 'random_state': 0,
+         'n_jobs': -1} \
         for x in ('l1', 'l2') \
         for y in (0.01, 0.1, 1, 10, 100) \
     ],
     'KNeighborsClassifier': [
-        {'n_neighbors': x, 'weights': y, 'algorithm': z} \
+        {'n_neighbors': x, 'weights': y, 'algorithm': z, 'n_jobs': -1} \
         for x in (5, 10, 50) \
         for y in ('uniform', 'distance') \
         for z in ('auto', 'ball_tree', 'kd_tree')
@@ -97,10 +98,12 @@ GRID_TEST = {
                    'DecisionTreeClassifier'],
     'thresholds': [0.5],
     'LogisticRegression': [
-        {'penalty': 'l2', 'C': 1, 'solver': 'liblinear', 'random_state': 0}
+        {'penalty': 'l2', 'C': 1, 'solver': 'liblinear', 'random_state': 0,
+         'n_jobs': -1}
     ],
     'KNeighborsClassifier': [
-        {'n_neighbors': 1, 'weights': 'uniform', 'algorithm': 'auto'}
+        {'n_neighbors': 1, 'weights': 'uniform', 'algorithm': 'auto',
+         'n_jobs': -1}
     ],
     'DecisionTreeClassifier': [
         {'max_depth': 1, 'max_features': 'sqrt', 'min_samples_leaf': 1,
@@ -111,12 +114,12 @@ GRID_TEST = {
     ],
     'RandomForestClassifier': [
         {'n_estimators': 10, 'max_depth': 1, 'max_features': 10,
-        'min_samples_leaf': 10, 'random_state': 0}
+         'random_state': 0, 'n_jobs': -1}
     ],
     'AdaBoostClassifier': [
         {'n_estimators': 10, 'algorithm': 'SAMME.R', 'random_state': 0}
     ],
     'BaggingClassifier': [
-        {'n_estimators': 10, 'random_state': 0}
+        {'n_estimators': 10, 'random_state': 0, 'n_jobs': -1}
     ]
 }
