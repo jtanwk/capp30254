@@ -87,7 +87,7 @@ GRID_MAIN = {
     ],
     'BaggingClassifier': [
         {'n_estimators': x, 'random_state': 0, 'n_jobs': -1} \
-        for x in (10, 100, 1000, 10000)
+        for x in (10, 100, 1000)
     ]
 }
 

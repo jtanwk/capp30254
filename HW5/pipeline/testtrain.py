@@ -50,7 +50,7 @@ def train_classifier(df, label, method, df_num, param_dict=None):
         classifier object.
     '''
     print(str(datetime.datetime.now()) + ' Training ' + method + \
-        'with params' + str(param_dict) + 'on training set'  + str(df_num))
+        ' with params ' + str(param_dict) + ' on training set '  + str(df_num))
 
     # Supported classifiers
     method_dict = {
@@ -117,7 +117,7 @@ def validate_classifier(df, label, classifier, top_k):
     '''
 
     # classifier = (method, param_dict, df_num, trained)
-    print(str(datetime.datetime.now()) + 'Evaluating ' + classifier[0] + ' with ' \
+    print(str(datetime.datetime.now()) + ' Evaluating ' + classifier[0] + ' with ' \
         + str(classifier[1]) + ' on top ' +  str(top_k * 100) + '%')
 
     # Initialize dictionary to store results
