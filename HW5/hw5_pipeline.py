@@ -15,13 +15,64 @@ from sklearn.preprocessing import normalize, scale
 import config as cf
 from pipeline.explore import read_data
 from pipeline.preprocess import fill_missing, bin_continuous_var, \
-                                make_dummy_vars, split_data_temporal
+                                balance_features, make_dummy_vars, \
+                                split_data_temporal
 from pipeline.testtrain import train_classifier, validate_classifier
 
 
-#############
-# MAIN BODY #
-#############
+########################
+# MAIN PIPELINE STAGES #
+########################
+
+def select_features(df):
+
+    # Define selected features
+    selected= ['school_state', 'school_metro', 'school_charter', 'school_magnet',
+        'teacher_prefix', 'primary_focus_area', 'secondary_focus_area',
+        'resource_type', 'poverty_level', 'grade_level',
+        'total_price_including_optional_support', 'students_reached',
+        'eligible_double_your_impact_match', 'date_posted', 'datefullyfunded']
+
+    return df[selected]
+
+
+def define_label(df):
+
+    # Label = 1 if datefullyfunded is more than 60 days after date_posted
+    df['not_funded_60_days'] = np.where(df['datefullyfunded'] - df['date_posted'] > \
+            pd.to_timedelta(60, unit='days'), 1, 0)
+    # Leave a lag period of 60 days at the end of each dataset
+    df = df \
+        .loc[df['date_posted'].max() - df['date_posted'] > pd.to_timedelta(60, unit='days')] \
+        .drop(labels=['date_posted', 'datefullyfunded'], axis=1)
+
+    return df
+
+
+def clean_data(df):
+
+    # clean missing data
+    df = fill_missing(df, ['students_reached'], median=True)
+
+    # standardize numeric features to mean 0 sd 1
+    numeric_features = ['total_price_including_optional_support', 'students_reached']
+    for i in numeric_features:
+        df[i] = scale(df[i])
+
+    # make string binary (t/f) into true binary (1/0)
+    binary_features = ['school_charter', 'school_magnet', 'eligible_double_your_impact_match']
+    for i in binary_features:
+        df[i] = np.where(df[i] == 't', 1, 0)
+
+    # transform categorical features into dummies
+    categorical_features = ['school_state', 'school_metro', 'teacher_prefix',
+        'resource_type', 'primary_focus_area', 'secondary_focus_area',
+        'poverty_level', 'grade_level']
+    for i in categorical_features:
+        df = make_dummy_vars(df, i)
+
+    return df
+
 
 def main():
 
@@ -30,15 +81,8 @@ def main():
     df = pd.read_csv(cf.DATA_PATH,
                      parse_dates=['date_posted', 'datefullyfunded'])
 
-
     # select features
-    selected_features = ['school_state', 'school_metro', 'school_charter',
-       'school_magnet', 'teacher_prefix', 'primary_focus_area',
-       'secondary_focus_area', 'resource_type', 'poverty_level', 'grade_level',
-       'total_price_including_optional_support', 'students_reached',
-       'eligible_double_your_impact_match', 'date_posted', 'datefullyfunded']
-    df = df[selected_features]
-
+    df = select_features(df)
 
     # split into test-train
     print('splitting data')
@@ -46,67 +90,23 @@ def main():
                                               date_col=cf.DATE_COL,
                                               split_dicts=cf.TEMPORAL_SPLITS)
 
-
-    # define label
-    print('defining label')
-    for df_list in (train_dfs, test_dfs):
-        for df in df_list:
-
-            # Label = 1 if datefullyfunded is more than 60 days after date_posted
-            df['not_funded_60_days'] = np.where(
-                df['datefullyfunded'] - df['date_posted'] > \
-                    pd.to_timedelta(60, unit='days'), 1, 0)
-            # Leave a lag period of 60 days at the end of each dataset
-            df = df.loc[df['date_posted'].max() - df['date_posted'] > \
-                pd.to_timedelta(60, unit='days')]
-
-    # Drop unnecessary columns
+    # preprocessing loop for all datasets
     for df_list in (train_dfs, test_dfs):
         for i in range(len(df_list)):
 
-            df_list[i] = df_list[i].drop(labels=['date_posted', 'datefullyfunded'], axis=1)
+            # define label
+            print('defining label for test-train set ' + str(i))
+            df_list[i] = define_label(df_list[i])
 
-
-    # clean missing data
-    print('cleaning data')
-    for df_list in (train_dfs, test_dfs):
-        for df in df_list:
-            df = fill_missing(df, ['students_reached'], median=True)
-
-
-    # standardize numeric data
-    numeric_features = ['total_price_including_optional_support', 'students_reached']
-    for df_list in (train_dfs, test_dfs):
-        for df in df_list:
-
-            for i in numeric_features:
-                df[i] = scale(df[i])
-
-
-    # make string binary into true binary
-    binary_features = ['school_charter', 'school_magnet',
-                       'eligible_double_your_impact_match']
-    for df_list in (train_dfs, test_dfs):
-        for df in df_list:
-
-            for i in binary_features:
-                df[i] = np.where(df[i] == 't', 1, 0)
-
-
-    # transform categorical features into dummies
-    categorical_features = ['school_state', 'school_metro', 'teacher_prefix',
-                        'resource_type', 'primary_focus_area',
-                        'secondary_focus_area', 'poverty_level', 'grade_level']
-    for df_list in (train_dfs, test_dfs):
-        for i in range(len(df_list)):
-
-            for j in categorical_features:
-                df_list[i] = make_dummy_vars(df_list[i], j)
+            # clean data
+            print('cleaning data for test-train set ' + str(i))
+            df_list[i] = clean_data(df_list[i])
 
 
     # make sure features match between test and train sets
-    test_dfs[2] = test_dfs[2].drop(labels=['teacher_prefix_Dr.'], axis=1)
-
+    for i in range(len(train_dfs)):
+        print('balancing features for test-train set' + str(i))
+        train_dfs[i], test_dfs[i] = balance_features(train_dfs[i], test_dfs[i])
 
     # train classifiers
     parameters = cf.GRID_MAIN # dictionary of lists of parameters
