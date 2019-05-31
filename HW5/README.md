@@ -13,14 +13,16 @@
 - The `/data` directory stores data used in this assignment.
 - The `/output` directory stores graph outputs from various models, as well as an excel file of the final table of classifiers and evaluation metrics.
 - `run_pipeline.sbatch`, `run_test_pipeline.sbatch`, `setup_env_rcc.sh` are shell scripts for submitting jobs on UChicago's RCC Midway compute cluster.
-- `run_pipeline.sh`, `run_test_pipeline.sh`, `setup_env.sh` are shell scripts for running the pipeline locally or on a virtual machine.
+- `run_pipeline.sh`, `run_test_pipeline.sh`, `setup_env.sh` are shell scripts for running the pipeline locally or on a virtual machine (see below).
 
 ## Running the code
 
 Without using a virtual environment:
+
     - Directly install all requirements by running `pip install --user -r requirements.txt`.
     - Run `python3 hw5_pipeline.py`.
 
 With using a virtual environment (`venv` in this case)
+
     - Set up an environment by running `sh setup_env.sh`.
     - Run `sh run_pipeline.sh`, which launches the env, runs `hw5_pipeline.py`, and deactiveates the env.
