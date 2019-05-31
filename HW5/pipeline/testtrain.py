@@ -94,7 +94,7 @@ def train_classifier(df, label, method, df_num, param_dict=None):
     return (method, param_dict, df_num, trained)
 
 
-def validate_classifier(df, label, classifier, top_k):
+def evaluate_classifier(df, label, classifier, top_k):
     '''
     Takes a test dataframe with features and labels, a tuple returned from
     train_classifier() method, and an optional threshold k for precision-recall.
@@ -112,21 +112,13 @@ def validate_classifier(df, label, classifier, top_k):
                  6. AdaBoostClassifier
                  7. BaggingClassifier
             label - string name of feature in df to predict on
-            top_k - top percentage of ranked observations to classify as positive
-    Output: dictionary of evaluation metrics for the given classifier.
+            top_k - list of top percentages of ranked obs to classify as 1
+    Output: dataframe of evaluation metrics for the given classifier.
     '''
 
     # classifier = (method, param_dict, df_num, trained)
     print(str(datetime.datetime.now()) + ' Evaluating ' + classifier[0] + ' with ' \
-        + str(classifier[1]) + ' on top ' +  str(top_k * 100) + '%')
-
-    # Initialize dictionary to store results
-    results_dict = {
-        'classifier': classifier[0],
-        'params': classifier[1],
-        'k': str(top_k * 100) + "%",
-        'test-train-id': classifier[2]
-    }
+        + str(classifier[1]))
 
     # Get predicted scores; need to manually get scores from LinearSVC
     x_test = df.drop(labels=[label], axis=1)
@@ -138,18 +130,28 @@ def validate_classifier(df, label, classifier, top_k):
     # For a given percentage, label the top n observations as 1
     pred_df = pd.DataFrame({'label': df[label], 'score': y_scores}) \
         .sort_values(by=['score'], ascending=False).reset_index(drop=True)
-    top_n = math.ceil(top_k * len(df))
-    y_pred = np.where(df.index < top_n, 1, 0)
+
+    result_df = pd.DataFrame()
     y_test = pred_df['label']
+    for k in top_k:
+        top_n = math.ceil(k * len(df))
+        y_pred = np.where(df.index < top_n, 1, 0)
 
-    # Calculate accuracy, precision, recall, f1, auc-roc for a given k
-    results_dict['accuracy'] = accuracy_score(y_true=y_test, y_pred=y_pred)
-    results_dict['precision'] = precision_score(y_true=y_test, y_pred=y_pred)
-    results_dict['recall'] = recall_score(y_true=y_test, y_pred=y_pred)
-    results_dict['f1'] = f1_score(y_true=y_test, y_pred=y_pred)
-    results_dict['auc-roc'] = roc_auc_score(y_true=y_test, y_score=y_scores)
+        # Calculate accuracy, precision, recall, f1, auc-roc for a given k
+        results_dict = {
+            'classifier': classifier[0],
+            'params': classifier[1],
+            'k': str(k * 100) + "%",
+            'test-train-id': classifier[2],
+            'accuracy': accuracy_score(y_true=y_test, y_pred=y_pred),
+            'precision': precision_score(y_true=y_test, y_pred=y_pred),
+            'recall': recall_score(y_true=y_test, y_pred=y_pred),
+            'f1': f1_score(y_true=y_test, y_pred=y_pred),
+            'auc-roc': roc_auc_score(y_true=y_test, y_score=y_scores)
+        }
+        result_df = result_df.append(results_dict, ignore_index=True)
 
-    return results_dict
+    return result_df
 
 
 #

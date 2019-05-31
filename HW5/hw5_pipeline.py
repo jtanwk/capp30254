@@ -17,7 +17,7 @@ from pipeline.explore import read_data
 from pipeline.preprocess import fill_missing, bin_continuous_var, \
                                 balance_features, make_dummy_vars, \
                                 split_data_temporal
-from pipeline.testtrain import train_classifier, validate_classifier
+from pipeline.testtrain import train_classifier, evaluate_classifier
 
 
 ########################
@@ -119,7 +119,6 @@ def main():
     for i in classifiers:
         for j in parameters[i]:
             for k in range(num_training_sets):
-
                 trained = train_classifier(df=train_dfs[k],
                                            label=label,
                                            method=i,
@@ -129,15 +128,12 @@ def main():
 
     # evaluate classifiers
     results_df = pd.DataFrame()
-
     for i in trained_classifiers: # (method, param_dict, df_num, trained)
-        for j in parameters['thresholds']:
-
-            results_dict = validate_classifier(df=test_dfs[i[2]],
-                                               label=cf.LABEL,
-                                               classifier=i,
-                                               top_k=j)
-            results_df = results_df.append(results_dict, ignore_index=True)
+        eval_df = evaluate_classifier(df=test_dfs[i[2]],
+                                      label=cf.LABEL,
+                                      classifier=i,
+                                      top_k=parameters['thresholds'])
+        results_df = results_df.append(eval_df, ignore_index=True)
 
     # save results to csv
     COL_ORDER = ['classifier', 'params', 'k', 'test-train-id', 'accuracy', 'precision', 'recall', 'f1', 'auc-roc']
