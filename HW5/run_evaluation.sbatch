@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=pipeline_jt
-#SBATCH --output=output/pipeline.out
-#SBATCH --error=output/pipeline.err
+#SBATCH --job-name=eval_jt
+#SBATCH --output=eval.out
+#SBATCH --error=eval.err
 #SBATCH --time=02:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=4
