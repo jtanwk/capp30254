@@ -52,8 +52,7 @@ GRID_MAIN = {
                    'BaggingClassifier'],
     'thresholds': [0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 1],
     'LogisticRegression': [
-        {'penalty': x, 'C': y, 'solver': 'liblinear', 'random_state': 0,
-         'n_jobs': -1} \
+        {'penalty': x, 'C': y, 'solver': 'liblinear', 'random_state': 0} \
         for x in ('l1', 'l2') \
         for y in (0.01, 0.1, 1, 10, 100) \
     ],
@@ -98,8 +97,7 @@ GRID_TEST = {
                    'DecisionTreeClassifier'],
     'thresholds': [0.5],
     'LogisticRegression': [
-        {'penalty': 'l2', 'C': 1, 'solver': 'liblinear', 'random_state': 0,
-         'n_jobs': -1}
+        {'penalty': 'l2', 'C': 1, 'solver': 'liblinear', 'random_state': 0}
     ],
     'KNeighborsClassifier': [
         {'n_neighbors': 1, 'weights': 'uniform', 'algorithm': 'auto',

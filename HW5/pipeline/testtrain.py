@@ -25,13 +25,33 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, \
 # PRIMARY FUNCTIONS #
 #####################
 
+# classifier = (method, param_dict, df_num, trained)
+
+class TrainedClassifier:
+    '''
+    Object to hold trained classifier object and metadata.
+        method - string name of classifier used
+        param_dict - dictionary of hyperparameters used to train model
+        df_num - integer id for test-train split
+        trained - trained classifier object
+
+    The train_classifier() function returns a TrainedClassifier.
+    '''
+
+    def __init__(self, method, param_dict, df_num, trained):
+        self.method = method
+        self.parameters = param_dict
+        self.df_num = df_num
+        self.classifier = trained
+
 
 def train_classifier(df, label, method, df_num, param_dict=None):
     '''
     Takes a pandas DataFrame, name of a label feature, the name of a classifier
     to fit, and an optional dictionary of classifier hyperparameters as inputs.
 
-    Returns a trained classifier object and related information.
+    Returns a TrainedClassifier object with attributes: method, parameters,
+        df_num, classifier.
 
     Inputs: df - pandas DataFrame of training data containing a label feature
             label - string name of the label feature to train on
@@ -45,9 +65,7 @@ def train_classifier(df, label, method, df_num, param_dict=None):
                          7. BaggingClassifier
             param_dict - (optional) dictionary of parameters to initialize each
                 classifier with. If None, uses small test params loop.
-    Output: (method, param_dict, trained) - a 4-tuple of (1) classifier name,
-        (2) hyperparameters used, (3) the test/train id, and (4) the trained
-        classifier object.
+    Output: TrainedClassifier object
     '''
     print(str(datetime.datetime.now()) + ' Training ' + method + \
         ' with params ' + str(param_dict) + ' on training set '  + str(df_num))
@@ -91,7 +109,10 @@ def train_classifier(df, label, method, df_num, param_dict=None):
     y_train = df[label]
     trained = classifier.fit(x_train, y_train)
 
-    return (method, param_dict, df_num, trained)
+    # Store results in TrainedClassifier object
+    result = TrainedClassifier(method, param_dict, df_num, trained)
+
+    return result
 
 
 def evaluate_classifier(df, label, classifier, top_k):
@@ -102,23 +123,18 @@ def evaluate_classifier(df, label, classifier, top_k):
     etc.) and returns a dictionary of those metrics.
 
     Inputs: df - pandas DataFrame of features and label for test set
-            classifier - 4-tuple of (method, params, df_id, classifier).
-                Classifier object must be one of:
-                 1. LogisticRegression
-                 2. KNeighborsClassifier
-                 3. DecisionTreeClassifier
-                 4. LinearSVC
-                 5. RandomForestClassifier
-                 6. AdaBoostClassifier
-                 7. BaggingClassifier
+            classifier - a TrainedClassifier object from train_classifier()
             label - string name of feature in df to predict on
             top_k - list of top percentages of ranked obs to classify as 1
     Output: dataframe of evaluation metrics for the given classifier.
     '''
 
     # classifier = (method, param_dict, df_num, trained)
-    print(str(datetime.datetime.now()) + ' Evaluating ' + classifier[0] + ' with ' \
-        + str(classifier[1]))
+    print(
+        str(datetime.datetime.now()) + ' Evaluating ' + classifier.method \
+        + ' with ' + str(classifier.parameters) + ' on test set ' \
+        + str(classifier.df_num)
+    )
 
     # Get predicted scores; need to manually get scores from LinearSVC
     x_test = df.drop(labels=[label], axis=1)

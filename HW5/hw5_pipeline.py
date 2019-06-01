@@ -45,6 +45,7 @@ def define_label(df):
     df = df \
         .loc[df['date_posted'].max() - df['date_posted'] > pd.to_timedelta(60, unit='days')] \
         .drop(labels=['date_posted', 'datefullyfunded'], axis=1)
+        .copy()
 
     return df
 
@@ -72,6 +73,11 @@ def clean_data(df):
         df = make_dummy_vars(df, i)
 
     return df
+
+
+def save_trained_models(obj):
+
+
 
 
 def main():
@@ -111,25 +117,25 @@ def main():
     # train classifiers
     parameters = cf.GRID_MAIN # dictionary of lists of parameters
 
-    classifiers = parameters['classifiers'] # list of string names of classifiers
-    num_training_sets = len(cf.TEMPORAL_SPLITS) # use to index into train_dfs
-    label = cf.LABEL
     trained_classifiers = []
-
-    for i in classifiers:
+    for i in parameters['classifiers']:
         for j in parameters[i]:
-            for k in range(num_training_sets):
+            for k in range(len(cf.TEMPORAL_SPLITS)):
                 trained = train_classifier(df=train_dfs[k],
-                                           label=label,
+                                           label=cf.LABEL,
                                            method=i,
                                            df_num=k,
                                            param_dict=j)
                 trained_classifiers.append(trained)
 
+    # store trained classifiers
+    
+
+
     # evaluate classifiers
     results_df = pd.DataFrame()
-    for i in trained_classifiers: # (method, param_dict, df_num, trained)
-        eval_df = evaluate_classifier(df=test_dfs[i[2]],
+    for i in trained_classifiers: # i is a TrainedClassifier object
+        eval_df = evaluate_classifier(df=test_dfs[i.df_num],
                                       label=cf.LABEL,
                                       classifier=i,
                                       top_k=parameters['thresholds'])
