@@ -5,9 +5,11 @@
 #########
 # SETUP #
 #########
-
 import math
 import datetime
+import pickle
+import argparse
+
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import normalize, scale
@@ -42,10 +44,9 @@ def define_label(df):
     df['not_funded_60_days'] = np.where(df['datefullyfunded'] - df['date_posted'] > \
             pd.to_timedelta(60, unit='days'), 1, 0)
     # Leave a lag period of 60 days at the end of each dataset
-    df = df \
-        .loc[df['date_posted'].max() - df['date_posted'] > pd.to_timedelta(60, unit='days')] \
+    df = df.loc[df['date_posted'].max() - df['date_posted'] > \
+            pd.to_timedelta(60, unit='days')] \
         .drop(labels=['date_posted', 'datefullyfunded'], axis=1)
-        .copy()
 
     return df
 
@@ -75,15 +76,29 @@ def clean_data(df):
     return df
 
 
-def save_trained_models(obj):
+def save_to_file(obj, path):
 
-
+    # Save passed obj as a pickle to given filepath
+    with open(path, 'wb') as f:
+        pickle.dump(obj=obj,
+                    file=f,
+                    protocol=pickle.HIGHEST_PROTOCOL)
+    print(str(datetime.datetime.now()) + " Saving object to " + path)
+    return None
 
 
 def main():
 
+    # announce test or full mode
+    if args.test:
+        print(str(datetime.datetime.now()) + " Running test grid ")
+        parameters = cf.GRID_TEST # simple test grid with 3 classifiers
+    else:
+        print(str(datetime.datetime.now()) + " Running full grid ")
+        parameters = cf.GRID_MAIN # full grid
+
     # read data
-    print('reading data')
+    print(str(datetime.datetime.now()) + ' Reading data ')
     df = pd.read_csv(cf.DATA_PATH,
                      parse_dates=['date_posted', 'datefullyfunded'])
 
@@ -91,7 +106,7 @@ def main():
     df = select_features(df)
 
     # split into test-train
-    print('splitting data')
+    print(str(datetime.datetime.now()) + ' Splitting data ')
     train_dfs, test_dfs = split_data_temporal(df=df,
                                               date_col=cf.DATE_COL,
                                               split_dicts=cf.TEMPORAL_SPLITS)
@@ -101,22 +116,23 @@ def main():
         for i in range(len(df_list)):
 
             # define label
-            print('defining label for test-train set ' + str(i))
+            print(str(datetime.datetime.now()) + ' Defining label for test-train set ' + str(i))
             df_list[i] = define_label(df_list[i])
 
             # clean data
-            print('cleaning data for test-train set ' + str(i))
+            print(str(datetime.datetime.now()) + ' Cleaning data for test-train set ' + str(i))
             df_list[i] = clean_data(df_list[i])
-
 
     # make sure features match between test and train sets
     for i in range(len(train_dfs)):
-        print('balancing features for test-train set' + str(i))
+        print(str(datetime.datetime.now()) + ' Balancing features for test-train set' + str(i))
         train_dfs[i], test_dfs[i] = balance_features(train_dfs[i], test_dfs[i])
 
-    # train classifiers
-    parameters = cf.GRID_MAIN # dictionary of lists of parameters
+    # save to file
+    test_train_data = [train_dfs, test_dfs]
+    save_to_file(test_train_data, cf.TEST_TRAIN_PATH)
 
+    # train classifiers
     trained_classifiers = []
     for i in parameters['classifiers']:
         for j in parameters[i]:
@@ -128,9 +144,8 @@ def main():
                                            param_dict=j)
                 trained_classifiers.append(trained)
 
-    # store trained classifiers
-    
-
+    # save to file
+    save_to_file(trained_classifiers, cf.CLASSIFIER_PATH)
 
     # evaluate classifiers
     results_df = pd.DataFrame()
@@ -143,11 +158,17 @@ def main():
 
     # save results to csv
     COL_ORDER = ['classifier', 'params', 'k', 'test-train-id', 'accuracy', 'precision', 'recall', 'f1', 'auc-roc']
-    results_df[COL_ORDER].to_excel("output/results.xlsx")
+    if args.test:
+        results_df[COL_ORDER].to_excel("output/results.xlsx")
+    else:
+        results_df[COL_ORDER].to_excel("output/results_test.xlsx")
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--test', action='store_true', help='Use test grid instead of main')
+    args = parser.parse_args()
 
+    main()
 
 #

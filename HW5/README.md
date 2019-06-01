@@ -6,8 +6,8 @@
     - `preprocess.py` contains the functions I wrote for imputation, feature generation, discretization, and other preprocessing steps.
     - `testtrain.py` contains the functions I wrote for model training and validation.
 - `config.py` is the python file containing hard-coded parameters used throughout the pipeline, including small and large grids.
-- `hw5_pipeline.py` is a script version of the full machine learning pipeline that, when run, goes through every stage of the pipeline, and finally exports the grid search results to `/output/results.xlsx`.
-- `Homework5_Tan.ipynb` demonstrates each step in `hw5_pipeline.py` in notebook form, including my steps taken to explore the data and verify that preprocessing steps occurred successfully. It documents critical choices around feature selection, training, etc. for predicting which DonorsChoose projects will not be funded within 60 days of posting. Lastly, it includes a short report of recommendations based on my results.
+- `pipeline.py` is a script version of the full machine learning pipeline that, when run, goes through every stage of the pipeline, and finally exports the grid search results to `/output/results.xlsx`.
+- `Homework5_Tan.ipynb` demonstrates each step in `pipeline.py` in notebook form, including my steps taken to explore the data and verify that preprocessing steps occurred successfully. It documents critical choices around feature selection, training, etc. for predicting which DonorsChoose projects will not be funded within 60 days of posting. Lastly, it includes a short report of recommendations based on my results.
 
 ## Other notes for this submission
 - The `/data` directory stores data used in this assignment.
@@ -20,9 +20,9 @@
 Without using a virtual environment:
 
     - Directly install all requirements by running `pip install --user -r requirements.txt`.
-    - Run `python3 hw5_pipeline.py`.
+    - Run `python3 pipeline.py`.
 
 With using a virtual environment (`venv` in this case)
 
     - Set up an environment by running `sh setup_env.sh`.
-    - Run `sh run_pipeline.sh`, which launches the env, runs `hw5_pipeline.py`, and deactiveates the env.
+    - Run `sh run_pipeline.sh`, which launches the environment, runs `pipeline.py`, and deactiveates the environment.

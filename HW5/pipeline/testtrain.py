@@ -138,10 +138,10 @@ def evaluate_classifier(df, label, classifier, top_k):
 
     # Get predicted scores; need to manually get scores from LinearSVC
     x_test = df.drop(labels=[label], axis=1)
-    if isinstance(classifier[3], LinearSVC):
-        y_scores = classifier[3].decision_function(x_test)
+    if isinstance(classifier.classifier, LinearSVC):
+        y_scores = classifier.classifier.decision_function(x_test)
     else:
-        y_scores = classifier[3].predict_proba(x_test)[:, 1]
+        y_scores = classifier.classifier.predict_proba(x_test)[:, 1]
 
     # For a given percentage, label the top n observations as 1
     pred_df = pd.DataFrame({'label': df[label], 'score': y_scores}) \
@@ -155,10 +155,10 @@ def evaluate_classifier(df, label, classifier, top_k):
 
         # Calculate accuracy, precision, recall, f1, auc-roc for a given k
         results_dict = {
-            'classifier': classifier[0],
-            'params': classifier[1],
+            'classifier': classifier.method,
+            'params': classifier.parameters,
             'k': str(k * 100) + "%",
-            'test-train-id': classifier[2],
+            'test-train-id': classifier.df_num,
             'accuracy': accuracy_score(y_true=y_test, y_pred=y_pred),
             'precision': precision_score(y_true=y_test, y_pred=y_pred),
             'recall': recall_score(y_true=y_test, y_pred=y_pred),

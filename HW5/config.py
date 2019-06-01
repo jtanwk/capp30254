@@ -3,16 +3,23 @@
 # Pipeline Configuration file
 
 
-################
-# 1. READ DATA #
-################
+######################
+# 1. READ/WRITE DATA #
+######################
 
-# Filepath where credit card data is stored
+# Filepath where input data is stored
 DATA_PATH = 'data/projects_2012_2013.csv'
+
+# Filepath where trained classifiers are stored
+CLASSIFIER_PATH = 'output/trained_classifiers.pkl'
+
+# Filepath where cleaned test/train data are stored
+TEST_TRAIN_PATH = 'output/test_train_clean.pkl'
 
 # Identifying column of interest
 LABEL = 'not_funded_60_days'
 DATE_COL = 'date_posted'
+
 
 ########################
 # 3. TEST/TRAIN SPLITS #

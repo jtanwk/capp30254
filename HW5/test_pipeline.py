@@ -1,6 +1,6 @@
 # CAPP 30254 Machine Learning for Public Policy
 # Homework 5 - Improving the Pipeline, Again
-# Main Pipeline Executable
+# Test Pipeline Executable
 
 #########
 # SETUP #
@@ -8,6 +8,7 @@
 
 import math
 import datetime
+import pickle
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import normalize, scale
@@ -42,8 +43,8 @@ def define_label(df):
     df['not_funded_60_days'] = np.where(df['datefullyfunded'] - df['date_posted'] > \
             pd.to_timedelta(60, unit='days'), 1, 0)
     # Leave a lag period of 60 days at the end of each dataset
-    df = df \
-        .loc[df['date_posted'].max() - df['date_posted'] > pd.to_timedelta(60, unit='days')] \
+    df = df.loc[df['date_posted'].max() - df['date_posted'] > \
+            pd.to_timedelta(60, unit='days')] \
         .drop(labels=['date_posted', 'datefullyfunded'], axis=1)
 
     return df
@@ -74,10 +75,20 @@ def clean_data(df):
     return df
 
 
+def save_trained_models(obj, path):
+
+    with open(path, 'wb') as f:
+        pickle.dump(obj=obj,
+                    file=f,
+                    protocol=pickle.HIGHEST_PROTOCOL)
+    print("Saved trained classifiers to " + path)
+    return None
+
+
 def main():
 
     # read data
-    print('reading data')
+    print(str(datetime.datetime.now()) + ' Reading data ')
     df = pd.read_csv(cf.DATA_PATH,
                      parse_dates=['date_posted', 'datefullyfunded'])
 
@@ -85,7 +96,7 @@ def main():
     df = select_features(df)
 
     # split into test-train
-    print('splitting data')
+    print(str(datetime.datetime.now()) + ' Splitting data ')
     train_dfs, test_dfs = split_data_temporal(df=df,
                                               date_col=cf.DATE_COL,
                                               split_dicts=cf.TEMPORAL_SPLITS)
@@ -95,41 +106,40 @@ def main():
         for i in range(len(df_list)):
 
             # define label
-            print('defining label for test-train set ' + str(i))
+            print(str(datetime.datetime.now()) + ' Defining label for test-train set ' + str(i))
             df_list[i] = define_label(df_list[i])
 
             # clean data
-            print('cleaning data for test-train set ' + str(i))
+            print(str(datetime.datetime.now()) + ' Cleaning data for test-train set ' + str(i))
             df_list[i] = clean_data(df_list[i])
 
 
     # make sure features match between test and train sets
     for i in range(len(train_dfs)):
-        print('balancing features for test-train set' + str(i))
+        print(str(datetime.datetime.now()) + ' Balancing features for test-train set' + str(i))
         train_dfs[i], test_dfs[i] = balance_features(train_dfs[i], test_dfs[i])
 
     # train classifiers
     parameters = cf.GRID_TEST # dictionary of lists of parameters
 
-    classifiers = parameters['classifiers'] # list of string names of classifiers
-    num_training_sets = len(cf.TEMPORAL_SPLITS) # use to index into train_dfs
-    label = cf.LABEL
     trained_classifiers = []
-
-    for i in classifiers:
+    for i in parameters['classifiers']:
         for j in parameters[i]:
-            for k in range(num_training_sets):
+            for k in range(len(cf.TEMPORAL_SPLITS)):
                 trained = train_classifier(df=train_dfs[k],
-                                           label=label,
+                                           label=cf.LABEL,
                                            method=i,
                                            df_num=k,
                                            param_dict=j)
                 trained_classifiers.append(trained)
 
+    # store trained classifiers as a pickle
+    save_trained_models(trained_classifiers, cf.CLASSIFIER_PATH)
+
     # evaluate classifiers
     results_df = pd.DataFrame()
-    for i in trained_classifiers: # (method, param_dict, df_num, trained)
-        eval_df = evaluate_classifier(df=test_dfs[i[2]],
+    for i in trained_classifiers: # i is a TrainedClassifier object
+        eval_df = evaluate_classifier(df=test_dfs[i.df_num],
                                       label=cf.LABEL,
                                       classifier=i,
                                       top_k=parameters['thresholds'])
@@ -142,6 +152,5 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
+    
 #
