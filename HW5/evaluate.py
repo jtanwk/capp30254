@@ -1,6 +1,6 @@
 # CAPP 30254 Machine Learning for Public Policy
 # Homework 5 - Improving the Pipeline, Again
-# Evaluation only (to prevent retraining)
+# Evaluation only (to prevent duplicate cleaning and training)
 
 import datetime
 import pickle
@@ -43,9 +43,9 @@ def main():
     # save results to csv
     COL_ORDER = ['classifier', 'params', 'k', 'test-train-id', 'accuracy', 'precision', 'recall', 'f1', 'auc-roc']
     if args.test:
-        results_df[COL_ORDER].to_excel("output/results.xlsx")
-    else:
         results_df[COL_ORDER].to_excel("output/results_test.xlsx")
+    else:
+        results_df[COL_ORDER].to_excel("output/results.xlsx")
 
 
 if __name__ == '__main__':

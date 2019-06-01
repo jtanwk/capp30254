@@ -100,8 +100,7 @@ GRID_MAIN = {
 
 # Test grid to make sure everything works - 1 model per classifier
 GRID_TEST = {
-    'classifiers': ['LogisticRegression', 'KNeighborsClassifier',
-                   'DecisionTreeClassifier'],
+    'classifiers': ['LogisticRegression', 'DecisionTreeClassifier'],
     'thresholds': [0.5],
     'LogisticRegression': [
         {'penalty': 'l2', 'C': 1, 'solver': 'liblinear', 'random_state': 0}
